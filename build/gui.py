@@ -3,15 +3,19 @@ from datetime import date, time
 from pathlib import Path
 
 # Explicit imports to satisfy Flake8
-from tkinter import Tk, Toplevel, Canvas, Entry, Label, Button, PhotoImage, messagebox, Listbox
+from tkinter import Tk, Toplevel, Canvas, Entry, Label, Button, PhotoImage, messagebox, RIGHT, BOTH
+from tkinter import Listbox, Scrollbar
+from tkinter.ttk import Treeview
 from tkinter import StringVar, IntVar, BooleanVar, DoubleVar
 from tkcalendar import DateEntry
 
 import login
+import get_link
+import webbrowser
 
 # Path Initialize
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"Y:\untitled\build\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame0")
 
 
 def relative_to_assets(path: str) -> Path:
@@ -32,6 +36,8 @@ notification_flag = BooleanVar(value=False)
 email_var = StringVar()
 password_var = StringVar()
 d_start, d_end = "", ""
+
+link_root = 'https://firebasestorage.googleapis.com/v0/b/upload-video-536b1.appspot.com/o/'
 
 canvas = Canvas(
     window,
@@ -66,14 +72,15 @@ canvas.create_rectangle(
     1410.0,
     955.0,
     fill="#D9D9D9",
-    outline="")
+    outline="#9CD0FA",
+    width=5)
 
 # Date Text
 canvas.create_text(
     34.0,
     29.0,
     anchor="nw",
-    text=date.today(),
+    text=str(date.today().day) + '/' + str(date.today().month) + '/' + str(date.today().year),
     fill="#000000",
     font=("InriaSans Light", 36 * -1)
 )
@@ -130,22 +137,6 @@ entry_dentry_end.place(
     height=48.0
 )
 
-button_image_show = PhotoImage(
-    file=relative_to_assets("button_show.png"))
-button_show = Button(
-    image=button_image_show,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_3 clicked"),
-    relief="flat"
-)
-button_show.place(
-    x=600.0,
-    y=135.0,
-    width=195.0,
-    height=50.0
-)
-
 # Button OK
 button_image_ok = PhotoImage(
     file=relative_to_assets("button_ok.png"))
@@ -160,23 +151,6 @@ button_ok.place(
     x=1360.0,
     y=135.0,
     width=50.0,
-    height=50.0
-)
-
-# Button Select
-button_image_select = PhotoImage(
-    file=relative_to_assets("button_select.png"))
-button_select = Button(
-    image=button_image_select,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_2 clicked"),
-    relief="flat"
-)
-button_select.place(
-    x=30.0,
-    y=135.0,
-    width=195.0,
     height=50.0
 )
 
@@ -347,17 +321,86 @@ button_submit.place(
 # Listbox link video    30.0, 205.0, 1410.0, 955.0,
 listbox = Listbox(
     window,
-    height=10,
-    width=1380,
-    bg="grey",
+    bg="#FFFFFF",
     activestyle='dotbox',
-    font="Helvetica",
-    fg="#000716")
-listbox.place(
-    x=30,
-    y=205,
-    width=1380,
-    height=750
+    font=("Inter", 24 * -1),
+    fg="#000716"
 )
+
+file_name = get_link.get_video_name()
+i = 0
+# for name in file_name:
+#     print(name)
+for name in file_name:
+    listbox.insert(i, name)
+    if i >= 1000:
+        i = 0
+        break
+
+listbox.place(
+    x=32.5,
+    y=207.5,
+    width=1375,
+    height=745
+)
+
+scroll_bar = Scrollbar(listbox)
+scroll_bar.pack(side=RIGHT, fill=BOTH)
+listbox.config(yscrollcommand=scroll_bar.set)
+scroll_bar.config(command=listbox.yview)
+
+
+def select_press():
+    for item in listbox.curselection():
+        print(listbox.get(item))
+        webbrowser.open(link_root + listbox.get(item) + '?alt=media', new=2)
+
+
+# Button Select
+button_image_select = PhotoImage(
+    file=relative_to_assets("button_select.png"))
+button_select = Button(
+    image=button_image_select,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: select_press(),
+    relief="flat"
+)
+button_select.place(
+    x=30.0,
+    y=135.0,
+    width=195.0,
+    height=50.0
+)
+
+
+# Button show full list video
+def show_press():
+    listbox.delete(first=0, last=1000)
+    f_name = get_link.get_video_name()
+    c = 0
+    for n in f_name:
+        listbox.insert(c, n)
+        if c >= 1000:
+            c = 0
+            break
+
+
+button_image_show = PhotoImage(
+    file=relative_to_assets("button_show.png"))
+button_show = Button(
+    image=button_image_show,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: show_press(),
+    relief="flat"
+)
+button_show.place(
+    x=600.0,
+    y=135.0,
+    width=195.0,
+    height=50.0
+)
+
 # main loop
 window.mainloop()
